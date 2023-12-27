@@ -1,20 +1,7 @@
 package com.rgsharma745;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -22,8 +9,15 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -53,11 +47,13 @@ public class CsvToDbTable {
         long startTime = System.currentTimeMillis();
         Path path = Paths.get(filePath);
         String fileName = path.getFileName().toFile().getName();
-        CSVFormat csvFormat = CSVFormat.DEFAULT
-                .withFirstRecordAsHeader()
-                .withIgnoreHeaderCase()
-                .withTrim()
-                .withAllowMissingColumnNames(true);
+        CSVFormat csvFormat = CSVFormat.Builder.create()
+                .setHeader()
+                .setSkipHeaderRecord(true)
+                .setIgnoreHeaderCase(true)
+                .setTrim(true)
+                .setAllowMissingColumnNames(true)
+                .build();
         try (Reader reader = Files.newBufferedReader(path); CSVParser csvParser = new CSVParser(reader, csvFormat)) {
             String tableName = fileName.replace(".csv", "");
             String dropQuery = generateDropTable(tableName);
