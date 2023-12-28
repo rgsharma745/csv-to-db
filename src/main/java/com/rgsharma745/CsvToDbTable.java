@@ -55,7 +55,7 @@ public class CsvToDbTable {
                 .setAllowMissingColumnNames(true)
                 .build();
         try (Reader reader = Files.newBufferedReader(path); CSVParser csvParser = new CSVParser(reader, csvFormat)) {
-            String tableName = fileName.replace(".csv", "");
+            String tableName = fileName.replace(".csv", "").replace("-","_");
             String dropQuery = generateDropTable(tableName);
             List<String> columns = sortColumnBasedOnIndex(csvParser.getHeaderMap());
             log.debug("Drop Query :: {} ", dropQuery);
