@@ -1,6 +1,8 @@
 package com.rgsharma745;
 
+import lombok.Cleanup;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -25,20 +27,21 @@ import java.util.stream.Stream;
 public class CsvToDbTable {
 
     private static final String CREATE_TABLE = "create table %s ( %s ) ";
-    private static final String INSERT_TABLE = "insert into %s  (%s)  values ( %s ) ";
-    private static final String DROP_TABLE = "drop table if exists %s   ";
+    private static final String INSERT_TABLE = "insert into %s (%s) values ( %s ) ";
+    private static final String DROP_TABLE = "drop table if exists %s ";
 
     private final JdbcTemplate jdbcTemplate;
 
-    public void loadAllCsvToDB(String filePath) throws IOException {
-        try (Stream<Path> pathStream = Files.find(Paths.get(filePath), Integer.MAX_VALUE, (path, fileAttr) -> fileAttr.isRegularFile() && path.getFileName().toString().endsWith(".csv"))) {
-            Set<Path> paths = pathStream.collect(Collectors.toSet());
-            for (Path path : paths) {
-                try {
-                    loadCsvToDB(path.toString());
-                } catch (Exception e) {
-                    log.error("Error ", e);
-                }
+    @SneakyThrows
+    public void loadAllCsvToDB(String filePath) {
+        @Cleanup
+        Stream<Path> pathStream = Files.find(Paths.get(filePath), Integer.MAX_VALUE, (path, fileAttr) -> fileAttr.isRegularFile() && path.getFileName().toString().endsWith(".csv"));
+        Set<Path> paths = pathStream.collect(Collectors.toSet());
+        for (Path path : paths) {
+            try {
+                loadCsvToDB(path.toString());
+            } catch (Exception e) {
+                log.error("Error ", e);
             }
         }
     }
@@ -54,21 +57,23 @@ public class CsvToDbTable {
                 .setTrim(true)
                 .setAllowMissingColumnNames(true)
                 .build();
-        try (Reader reader = Files.newBufferedReader(path); CSVParser csvParser = new CSVParser(reader, csvFormat)) {
-            String tableName = fileName.replace(".csv", "").replace("-","_");
-            String dropQuery = generateDropTable(tableName);
-            List<String> columns = sortColumnBasedOnIndex(csvParser.getHeaderMap());
-            log.debug("Drop Query :: {} ", dropQuery);
-            jdbcTemplate.execute(dropQuery);
-            String createQuery = generateCreateTable(tableName, columns);
-            log.debug("Create Query :: {} ", createQuery);
-            jdbcTemplate.execute(createQuery);
-            String insertQuery = generateInsertQuery(tableName, columns);
-            log.debug("Insert Query :: {} ", insertQuery);
-            int[][] batchInsert = batchInsert(tableName, insertQuery, csvParser.getRecords(), columns, 500);
-            log.debug("Batch Insert Details :: {} ", (Object) batchInsert);
-            log.info("File Name {} Total Time Required :: {} ms", tableName, System.currentTimeMillis() - startTime);
-        }
+        @Cleanup
+        Reader reader = Files.newBufferedReader(path);
+        @Cleanup
+        CSVParser csvParser = new CSVParser(reader, csvFormat);
+        String tableName = fileName.replace(".csv", "").replace("-", "_");
+        String dropQuery = generateDropTable(tableName);
+        List<String> columns = sortColumnBasedOnIndex(csvParser.getHeaderMap());
+        log.debug("Drop Query :: {} ", dropQuery);
+        jdbcTemplate.execute(dropQuery);
+        String createQuery = generateCreateTable(tableName, columns);
+        log.debug("Create Query :: {} ", createQuery);
+        jdbcTemplate.execute(createQuery);
+        String insertQuery = generateInsertQuery(tableName, columns);
+        log.debug("Insert Query :: {} ", insertQuery);
+        int[][] batchInsert = batchInsert(tableName, insertQuery, csvParser.getRecords(), columns, 500);
+        log.debug("Batch Insert Details :: {} ", (Object) batchInsert);
+        log.info("File Name {} Total Time Required :: {} ms", tableName, System.currentTimeMillis() - startTime);
     }
 
     private String generateDropTable(String fileName) {
