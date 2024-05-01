@@ -5,7 +5,7 @@
 
 ## Features
 - **Automated CSV Reading**: Batch reads multiple CSV files from a designated folder.
-- **Dynamic Table Creation**: Generates a new table for each CSV file with appropriate data types.
+- **Dynamic Table Creation**: Generates a new table for each CSV file with text data type.
 - **Data Upload**: Efficiently uploads CSV data into the PostgreSQL database tables.
 - **Error Handling**: Provides robust error handling during the read and upload processes.
 
@@ -24,7 +24,7 @@
 
 ## Usage
 1. Update the `application.properties` file with your PostgreSQL database credentials and the path to the CSV directory.
-2. Run the application: java -jar target/csv-to-db-1.0-SNAPSHOT.jar
+2. Run the application: java -jar target/csv-to-db-1.0.0.jar
 
 
 ## Configuration
@@ -40,7 +40,3 @@ Contributions are welcome! Please feel free to submit pull requests or create is
 
 ## License
 This project is open source and available under the MIT License.
-
-## Acknowledgments
-- Thanks to all the contributors who have helped with the development of this project.
-- Special thanks to the PostgreSQL community for their robust database management system.
