@@ -110,13 +110,11 @@ public class CsvToDbTable {
             records.add(csvRecord);
             if (records.size() == batchSize) {
                 batchInsertInDb(fileName, insertSql, headers, batchSize, records);
-                log.debug("Inserted {} records to table : {} ", batchSize, fileName);
-                records = new ArrayList<>();
+                records.clear();
             }
         }
         if (!records.isEmpty()) {
             batchInsertInDb(fileName, insertSql, headers, batchSize, records);
-            log.debug("Inserted {} records to table : {} ", records.size(), fileName);
         }
     }
 
@@ -134,5 +132,6 @@ public class CsvToDbTable {
                 ps.setString(i + 1, value);
             }
         });
+        log.debug("Inserted {} records to table : {} ", records.size(), fileName);
     }
 }
