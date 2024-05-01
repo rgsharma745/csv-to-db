@@ -67,7 +67,7 @@ public class CsvToDbTable {
         Reader reader = Files.newBufferedReader(path);
         @Cleanup
         CSVParser csvParser = new CSVParser(reader, csvFormat);
-        String tableName = fileName.replace(".csv", "").replace("-", "_");
+        String tableName = Utils.normalize(fileName.replace(".csv", ""));
         String dropQuery = generateDropTable(tableName);
         List<String> columns = sortColumnBasedOnIndex(csvParser.getHeaderMap());
         log.debug("Drop Query :: {} ", dropQuery);
@@ -77,8 +77,7 @@ public class CsvToDbTable {
         jdbcTemplate.execute(createQuery);
         String insertQuery = generateInsertQuery(tableName, columns);
         log.debug("Insert Query :: {} ", insertQuery);
-        int[][] batchInsert = batchInsert(tableName, insertQuery, csvParser.getRecords(), columns, 500);
-        log.debug("Batch Insert Details :: {} ", (Object) batchInsert);
+        batchInsert(tableName, insertQuery, csvParser, columns, 500);
         log.info("File Name {} Total Time Required :: {} ms", tableName, System.currentTimeMillis() - startTime);
     }
 
@@ -87,13 +86,13 @@ public class CsvToDbTable {
     }
 
     public String generateCreateTable(String tableName, List<String> headers) {
-        String columns = headers.stream().map(integer -> integer + " text").collect(Collectors.joining(", "));
+        String columns = headers.stream().map(columnName -> Utils.normalize(columnName) + " text").collect(Collectors.joining(", "));
         return String.format(CREATE_TABLE, tableName.toLowerCase(), columns.toLowerCase());
     }
 
     private String generateInsertQuery(String tableName, List<String> headers) {
-        String columns = String.join(", ", headers);
-        String values = IntStream.range(0, headers.size()).mapToObj(x->  "?").collect(Collectors.joining(", "));
+        String columns = headers.stream().map(Utils::normalize).collect(Collectors.joining(", "));
+        String values = IntStream.range(0, headers.size()).mapToObj(x -> "?").collect(Collectors.joining(", "));
         return String.format(INSERT_TABLE, tableName.toLowerCase(), columns.toLowerCase(), values);
     }
 
@@ -105,8 +104,24 @@ public class CsvToDbTable {
                 .toList();
     }
 
-    public int[][] batchInsert(String fileName, String insertSql, List<CSVRecord> records, List<String> headers, int batchSize) {
-        return jdbcTemplate.batchUpdate(insertSql, records, batchSize, (ps, csvRecord) -> {
+    public void batchInsert(String fileName, String insertSql, CSVParser parser, List<String> headers, int batchSize) {
+        List<CSVRecord> records = new ArrayList<>();
+        for (CSVRecord csvRecord : parser) {
+            records.add(csvRecord);
+            if (records.size() == batchSize) {
+                batchInsertInDb(fileName, insertSql, headers, batchSize, records);
+                log.debug("Inserted 500 records to table : {} ", fileName);
+                records = new ArrayList<>();
+            }
+        }
+        if (!records.isEmpty()) {
+            batchInsertInDb(fileName, insertSql, headers, batchSize, records);
+            log.debug("Inserted {} records to table : {} ", records.size(), fileName);
+        }
+    }
+
+    private void batchInsertInDb(String fileName, String insertSql, List<String> headers, int batchSize, List<CSVRecord> records) {
+        jdbcTemplate.batchUpdate(insertSql, records, batchSize, (ps, csvRecord) -> {
             for (int i = 0; i < headers.size(); i++) {
                 String value = null;
                 try {
@@ -116,7 +131,7 @@ public class CsvToDbTable {
                         log.warn("Error Reading Record from File {} Record Number {} , Exception :: {}", fileName, csvRecord.getRecordNumber(), e.getMessage());
                     }
                 }
-                ps.setString(i+1, value);
+                ps.setString(i + 1, value);
             }
         });
     }
