@@ -110,7 +110,7 @@ public class CsvToDbTable {
             records.add(csvRecord);
             if (records.size() == batchSize) {
                 batchInsertInDb(fileName, insertSql, headers, batchSize, records);
-                log.debug("Inserted 500 records to table : {} ", fileName);
+                log.debug("Inserted {} records to table : {} ", batchSize, fileName);
                 records = new ArrayList<>();
             }
         }
