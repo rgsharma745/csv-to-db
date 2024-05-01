@@ -17,8 +17,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -32,6 +32,12 @@ public class CsvToDbTable {
 
     private final JdbcTemplate jdbcTemplate;
 
+
+    /**
+     * Loads all CSV files in the specified directory to the database.
+     *
+     * @param filePath The path to the directory containing the CSV files.
+     */
     @SneakyThrows
     public void loadAllCsvToDB(String filePath) {
         @Cleanup
@@ -86,36 +92,31 @@ public class CsvToDbTable {
     }
 
     private String generateInsertQuery(String tableName, List<String> headers) {
-        Supplier<String> questionMarkSupplier = () -> "?";
         String columns = String.join(", ", headers);
-        String values = Stream.generate(questionMarkSupplier).limit(headers.size()).collect(Collectors.joining(", "));
-
-        return String.format(INSERT_TABLE, tableName.toLowerCase(), columns.toLowerCase(), values.toLowerCase());
+        String values = IntStream.range(0, headers.size()).mapToObj(x->  "?").collect(Collectors.joining(", "));
+        return String.format(INSERT_TABLE, tableName.toLowerCase(), columns.toLowerCase(), values);
     }
 
     private List<String> sortColumnBasedOnIndex(Map<String, Integer> headers) {
-        List<String> columns = new LinkedList<>();
-        LinkedHashMap<String, Integer> sortedMap = headers.entrySet().stream().sorted(Map.Entry.comparingByValue()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
-        sortedMap.forEach((key, value) -> {
-            if (StringUtils.hasText(key)) {
-                columns.add(key);
-            }
-        });
-        return columns;
+        return headers.entrySet().stream()
+                .filter(entry -> StringUtils.hasText(entry.getKey()))
+                .sorted(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .toList();
     }
 
     public int[][] batchInsert(String fileName, String insertSql, List<CSVRecord> records, List<String> headers, int batchSize) {
         return jdbcTemplate.batchUpdate(insertSql, records, batchSize, (ps, csvRecord) -> {
-            for (int i = 1; i <= headers.size(); i++) {
+            for (int i = 0; i < headers.size(); i++) {
                 String value = null;
                 try {
-                    value = csvRecord.get(headers.get(i - 1));
+                    value = csvRecord.get(headers.get(i));
                 } catch (IllegalArgumentException e) {
                     if (!e.getMessage().contains("Index for header")) {
                         log.warn("Error Reading Record from File {} Record Number {} , Exception :: {}", fileName, csvRecord.getRecordNumber(), e.getMessage());
                     }
                 }
-                ps.setString(i, value);
+                ps.setString(i+1, value);
             }
         });
     }
