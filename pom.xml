@@ -15,6 +15,19 @@
     <description>CSV to Postgres DB</description>
     <properties>
         <java.version>22</java.version>
+
+        <sonar.organization>rgsharma745</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.projectKey>rgsharma745_csv-to-db</sonar.projectKey>
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+        <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
+        <sonar.language>java</sonar.language>
+        <sonar.java.source>22</sonar.java.source>
+        <sonar.sources>src/main/java</sonar.sources>
+        <sonar.test>src/test/java</sonar.test>
+        <sonar.java.binaries>target/classes</sonar.java.binaries>
+        <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
     </properties>
     <dependencies>
         <dependency>
@@ -75,7 +88,6 @@
                     </execution>
                     <execution>
                         <id>generate-code-coverage-report</id>
-                        <phase>test</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
