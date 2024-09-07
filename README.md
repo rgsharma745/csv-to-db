@@ -1,5 +1,5 @@
-# csv-to-db
-
+# CSV to PostgreSQL Application
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=rgsharma745_csv-to-db)](https://sonarcloud.io/summary/new_code?id=rgsharma745_csv-to-db)
 ## Overview
 `csv-to-db` is a Java-based utility that automates the process of reading CSV files from a specified directory, creating corresponding tables in a PostgreSQL database, and uploading the data into these tables. This project streamlines the data migration process and ensures that data stored in CSV format can be easily transferred to a structured database system.
 

@@ -13,12 +13,22 @@
     <version>1.0.0</version>
     <name>csv-to-db</name>
     <description>CSV to Postgres DB</description>
+    <url>https://github.com/rgsharma745/csv-to-db</url>
+    <developers>
+        <developer>
+            <name>Rahul Sharma</name>
+            <email>rgsharma745@gmail.com</email>
+                <organizationUrl>https://github.com/rgsharma745</organizationUrl>
+        </developer>
+    </developers>
+    <scm>
+        <url>https://github.com/rgsharma745/csv-to-db</url>
+    </scm>
     <properties>
         <java.version>22</java.version>
-
         <sonar.organization>rgsharma745</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.projectKey>rgsharma745_csv-to-db</sonar.projectKey>
+        <sonar.projectKey>csv-to-db</sonar.projectKey>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.language>java</sonar.language>
