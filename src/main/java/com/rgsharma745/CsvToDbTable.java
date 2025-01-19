@@ -62,11 +62,11 @@ public class CsvToDbTable {
                 .setIgnoreHeaderCase(true)
                 .setTrim(true)
                 .setAllowMissingColumnNames(true)
-                .build();
+                .get();
         @Cleanup
         Reader reader = Files.newBufferedReader(path);
         @Cleanup
-        CSVParser csvParser = new CSVParser(reader, csvFormat);
+        CSVParser csvParser = CSVParser.builder().setReader(reader).setFormat(csvFormat).get();
         String tableName = Utils.normalize(fileName.replace(".csv", ""));
         String dropQuery = generateDropTable(tableName);
         List<String> columns = sortColumnBasedOnIndex(csvParser.getHeaderMap());
