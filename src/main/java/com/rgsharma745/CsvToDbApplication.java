@@ -14,8 +14,9 @@ public class CsvToDbApplication {
     }
 
     @Bean
-    public CommandLineRunner commandLineRunner(CsvToDbTable csvToDbTable, @Value("${csv.base.location}") String csvBaseLocation) {
-        return args -> csvToDbTable.loadAllCsvToDB(csvBaseLocation);
+    public CommandLineRunner commandLineRunner(CsvToDbTable csvToDbTable, @Value("${csv.base.location}") String csvBaseLocation,
+                                               @Value("${db.batch.size:1000}") int batchSize) {
+        return _ -> csvToDbTable.loadAllCsvToDB(csvBaseLocation,batchSize);
     }
 
 }

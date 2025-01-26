@@ -36,23 +36,24 @@ public class CsvToDbTable {
     /**
      * Loads all CSV files in the specified directory to the database.
      *
-     * @param filePath The path to the directory containing the CSV files.
+     * @param filePath  The path to the directory containing the CSV files.
+     * @param batchSize batch size for db insertion
      */
     @SneakyThrows
-    public void loadAllCsvToDB(String filePath) {
+    public void loadAllCsvToDB(String filePath, int batchSize) {
         @Cleanup
         Stream<Path> pathStream = Files.find(Paths.get(filePath), Integer.MAX_VALUE, (path, fileAttr) -> fileAttr.isRegularFile() && path.getFileName().toString().endsWith(".csv"));
         Set<Path> paths = pathStream.collect(Collectors.toSet());
         for (Path path : paths) {
             try {
-                loadCsvToDB(path.toString());
+                loadCsvToDB(path.toString(),batchSize);
             } catch (Exception e) {
                 log.error("Error ", e);
             }
         }
     }
 
-    public void loadCsvToDB(String filePath) throws IOException {
+    public void loadCsvToDB(String filePath, int batchSize) throws IOException {
         long startTime = System.currentTimeMillis();
         Path path = Paths.get(filePath);
         String fileName = path.getFileName().toFile().getName();
@@ -77,7 +78,7 @@ public class CsvToDbTable {
         jdbcTemplate.execute(createQuery);
         String insertQuery = generateInsertQuery(tableName, columns);
         log.debug("Insert Query :: {} ", insertQuery);
-        batchInsert(tableName, insertQuery, csvParser, columns, 500);
+        batchInsert(tableName, insertQuery, csvParser, columns, batchSize);
         log.info("File Name {} Total Time Required :: {} ms", tableName, System.currentTimeMillis() - startTime);
     }
 
@@ -92,7 +93,7 @@ public class CsvToDbTable {
 
     private String generateInsertQuery(String tableName, List<String> headers) {
         String columns = headers.stream().map(Utils::normalize).collect(Collectors.joining(", "));
-        String values = IntStream.range(0, headers.size()).mapToObj(x -> "?").collect(Collectors.joining(", "));
+        String values = IntStream.range(0, headers.size()).mapToObj(_ -> "?").collect(Collectors.joining(", "));
         return String.format(INSERT_TABLE, tableName.toLowerCase(), columns.toLowerCase(), values);
     }
 
