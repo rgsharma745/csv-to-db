@@ -12,7 +12,7 @@ public class Utils {
     private static final Pattern NON_LATIN = Pattern.compile("[^\\w-]");
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
 
-    public static String normalize(String input) {
+    public static String normalize(final String input) {
         String whitespace = WHITESPACE.matcher(input).replaceAll("_");
         String normalized = Normalizer.normalize(whitespace, Normalizer.Form.NFD);
         String slug = NON_LATIN.matcher(normalized).replaceAll("");
