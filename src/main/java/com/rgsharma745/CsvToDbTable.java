@@ -1,12 +1,10 @@
 package com.rgsharma745;
 
-import lombok.Cleanup;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -16,21 +14,27 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-@Slf4j
-@RequiredArgsConstructor
 @Component
 public class CsvToDbTable {
 
     private static final String CREATE_TABLE = "create table %s ( %s ) ";
     private static final String INSERT_TABLE = "insert into %s (%s) values ( %s ) ";
     private static final String DROP_TABLE = "drop table if exists %s ";
+    private static final Logger log = LoggerFactory.getLogger(CsvToDbTable.class);
 
     private final JdbcTemplate jdbcTemplate;
+
+    public CsvToDbTable(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
 
     /**
@@ -39,16 +43,17 @@ public class CsvToDbTable {
      * @param filePath  The path to the directory containing the CSV files.
      * @param batchSize batch size for db insertion
      */
-    @SneakyThrows
-    public void loadAllCsvToDB(String filePath, int batchSize) {
-        @Cleanup
-        Stream<Path> pathStream = Files.find(Paths.get(filePath), Integer.MAX_VALUE, (path, fileAttr) -> fileAttr.isRegularFile() && path.getFileName().toString().endsWith(".csv"));
-        Set<Path> paths = pathStream.collect(Collectors.toSet());
-        for (Path path : paths) {
-            try {
-                loadCsvToDB(path.toString(),batchSize);
-            } catch (Exception e) {
-                log.error("Error ", e);
+    public void loadAllCsvToDB(String filePath, int batchSize) throws IOException {
+        try(Stream<Path> pathStream = Files.find(Paths.get(filePath), Integer.MAX_VALUE,
+                (path, fileAttr) -> fileAttr.isRegularFile() && path.getFileName().toString().endsWith(".csv")))
+        {
+            Set<Path> paths = pathStream.collect(Collectors.toSet());
+            for (Path path : paths) {
+                try {
+                    loadCsvToDB(path.toString(), batchSize);
+                } catch (Exception e) {
+                    log.error("Error ", e);
+                }
             }
         }
     }
@@ -64,9 +69,7 @@ public class CsvToDbTable {
                 .setTrim(true)
                 .setAllowMissingColumnNames(true)
                 .get();
-        @Cleanup
         Reader reader = Files.newBufferedReader(path);
-        @Cleanup
         CSVParser csvParser = CSVParser.builder().setReader(reader).setFormat(csvFormat).get();
         String tableName = Utils.normalize(fileName.replace(".csv", ""));
         String dropQuery = generateDropTable(tableName);

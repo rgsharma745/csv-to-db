@@ -25,14 +25,14 @@
         <url>https://github.com/rgsharma745/csv-to-db</url>
     </scm>
     <properties>
-        <java.version>22</java.version>
+        <java.version>25</java.version>
         <sonar.organization>rgsharma745</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.projectKey>csv-to-db</sonar.projectKey>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.language>java</sonar.language>
-        <sonar.java.source>22</sonar.java.source>
+        <sonar.java.source>25</sonar.java.source>
         <sonar.sources>src/main/java</sonar.sources>
         <sonar.test>src/test/java</sonar.test>
         <sonar.java.binaries>target/classes</sonar.java.binaries>
@@ -52,10 +52,6 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -118,7 +114,7 @@
                 <version>3.6.0</version>
                 <configuration>
                     <configLocation>src/main/resources/checkstyle.xml</configLocation>
-                    <encoding>UTF-8</encoding>
+                    <inputEncoding>UTF-8</inputEncoding>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
                     <linkXRef>false</linkXRef>
