@@ -18,7 +18,7 @@ jobs:
         java: [ '25' ]
         distribution: ['temurin']
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Set up Java ${{ matrix.java }}
